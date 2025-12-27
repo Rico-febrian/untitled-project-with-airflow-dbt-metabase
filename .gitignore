@@ -1,0 +1,5 @@
+venv/
+*.env
+*__pycache__
+airflow-connections-init.yml
+airflow-variables-init.json
