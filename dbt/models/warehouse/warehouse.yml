@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Date dimension generated from staging date range
+    columns:
+      - name: date_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fact_exchange_rates
+    description: Exchange rates with daily change calculations
+    columns:
+      - name: currency_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('staging', 'stg_exchange_rates')
+              field: id
+              config:
+                severity: warn
+      - name: date_id
+        tests:
+          - not_null
+      - name: rate
+        tests:
+          - not_null

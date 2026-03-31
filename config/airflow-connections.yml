@@ -1,0 +1,20 @@
+frankfurter_api:
+  conn_type: http
+  description: Frankfurter Exchange Rate API
+  host: https://api.frankfurter.dev
+
+minio_conn:
+  conn_type: aws
+  description: MinIO S3-compatible storage
+  login: minio
+  password: minio123
+  extra: '{"endpoint_url": "http://minio:9000"}'
+
+warehouse_conn:
+  conn_type: postgres
+  description: Exchange Rate Data Warehouse
+  host: exchange-rate-dwh
+  login: postgres
+  password: postgres123
+  port: 5432
+  schema: exchange_rate_dwh

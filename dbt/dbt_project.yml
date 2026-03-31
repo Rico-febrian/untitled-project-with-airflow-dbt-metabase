@@ -1,0 +1,12 @@
+name: 'exchange_rate_dbt'
+version: '1.0.0'
+
+profile: 'exchange_rate_dbt'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"

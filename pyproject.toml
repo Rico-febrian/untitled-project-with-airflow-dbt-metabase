@@ -1,0 +1,12 @@
+[project]
+name = "exchange-rate-monitor"
+version = "0.1.0"
+description = "ELT pipeline for exchange rate monitoring with Airflow, dbt, and Metabase"
+requires-python = ">=3.12"
+dependencies = [
+    "requests",
+    "pandas",
+    "minio",
+    "psycopg2-binary",
+    "python-dotenv",
+]

@@ -1,0 +1,58 @@
+mappings:
+
+  # DAG duration
+  - match: "airflow.dag.*.duration"
+    name: "airflow_dag_duration"
+    labels:
+      dag_id: "$1"
+
+  # DAG success count
+  - match: "airflow.dag.*.success"
+    name: "airflow_dag_success"
+    labels:
+      dag_id: "$1"
+
+  # DAG failed count
+  - match: "airflow.dag.*.failed"
+    name: "airflow_dag_failed"
+    labels:
+      dag_id: "$1"
+
+  # Task duration
+  - match: "airflow.dag.*.*.duration"
+    name: "airflow_task_duration"
+    labels:
+      dag_id: "$1"
+      task_id: "$2"
+
+  # Task success
+  - match: "airflow.dag.*.*.success"
+    name: "airflow_task_success"
+    labels:
+      dag_id: "$1"
+      task_id: "$2"
+
+  # Task failed
+  - match: "airflow.dag.*.*.failed"
+    name: "airflow_task_failed"
+    labels:
+      dag_id: "$1"
+      task_id: "$2"
+
+  # Scheduler heartbeat
+  - match: "airflow.scheduler_heartbeat"
+    name: "airflow_scheduler_heartbeat"
+
+  # DAG processing time
+  - match: "airflow.dag_processing.total_parse_time"
+    name: "airflow_dag_processing_total_parse_time"
+
+  # Executor slots
+  - match: "airflow.executor.open_slots"
+    name: "airflow_executor_open_slots"
+
+  - match: "airflow.executor.queued_tasks"
+    name: "airflow_executor_queued_tasks"
+
+  - match: "airflow.executor.running_tasks"
+    name: "airflow_executor_running_tasks"

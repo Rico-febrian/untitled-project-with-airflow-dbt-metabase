@@ -1,5 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
 venv/
-*.env
-*__pycache__
-airflow-connections-init.yml
-airflow-variables-init.json
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Airflow
+logs/
+
+# DuckDB / SQLite
+*.duckdb
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# uv
+*.egg-info/

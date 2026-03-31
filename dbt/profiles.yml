@@ -1,0 +1,12 @@
+exchange_rate_dbt:
+  outputs:
+    dev:
+      type: postgres
+      host: exchange-rate-dwh
+      port: 5432
+      user: postgres
+      password: postgres123
+      dbname: exchange_rate_dwh
+      schema: warehouse
+      threads: 4
+  target: dev

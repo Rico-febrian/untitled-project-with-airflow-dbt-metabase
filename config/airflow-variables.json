@@ -1,0 +1,5 @@
+{
+    "exchange_rate_base_currency": "USD",
+    "exchange_rate_target_currencies": "IDR,EUR,SGD,JPY,MYR",
+    "exchange_rate_bucket": "raw-exchange-rates"
+}
