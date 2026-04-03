@@ -5,11 +5,13 @@ from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig, RenderConfig
 
 from extract import extract_to_minio
 from load import load_to_staging
+from alert import send_failure_alert
 
 default_args = {
     "owner": "rico",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": send_failure_alert,
 }
 
 # dbt config for Cosmos
@@ -39,7 +41,6 @@ with DAG(
         python_callable=load_to_staging,
     )
 
-    # Cosmos auto-generates tasks from dbt models
     dbt_transform = DbtTaskGroup(
         group_id="dbt_transform",
         project_config=ProjectConfig(
