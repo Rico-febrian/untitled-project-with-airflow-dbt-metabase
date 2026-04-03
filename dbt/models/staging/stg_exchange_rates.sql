@@ -1,7 +1,4 @@
--- Staging model: clean and rename columns from raw source
--- Materialized as view because it's just a passthrough layer
-
-{{ config(materialized='view', schema='staging') }}
+{{ config(materialized='view') }}
 
 select
     id,
