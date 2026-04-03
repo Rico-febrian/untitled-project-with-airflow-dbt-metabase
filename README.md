@@ -1,6 +1,10 @@
 # Exchange Rate Monitor
 
-ELT pipeline that extracts daily exchange rates from the Frankfurter API, stores raw data in MinIO, loads it into a PostgreSQL data warehouse, transforms it with dbt (orchestrated via Cosmos), and serves analytics through a Metabase dashboard. Pipeline is scheduled and monitored with Airflow, with failure alerts sent to Slack and Airflow metrics visualized in Grafana.
+Hello, welcome to my learning logs!
+
+In this project, I explored something new by building an ELT pipeline that simulates how a company might monitor daily exchange rates. The pipeline extracts data from the Frankfurter API, stores raw data in MinIO, loads it into a PostgreSQL data warehouse, transforms it with dbt (orchestrated via Cosmos), and serves analytics through a Metabase dashboard. Everything is scheduled and monitored with Airflow, with failure alerts sent to Slack and Airflow metrics visualized in Grafana.
+
+I hope you find something useful and can learn from this repository!
 
 &nbsp;
 
@@ -34,7 +38,29 @@ ELT pipeline that extracts daily exchange rates from the Frankfurter API, stores
 
 ## How It Works
 
-The pipeline runs daily on weekdays. Airflow triggers an extract task that calls the Frankfurter API for the latest USD exchange rates against IDR, EUR, SGD, JPY, and MYR, then stores the raw JSON in MinIO. A load task reads the JSON from MinIO and upserts it into a PostgreSQL staging table. dbt then transforms the staging data into a star schema with a date dimension and a fact table that includes daily rate changes. Metabase connects to the warehouse and serves a dashboard focused on USD/IDR trends. If any task fails, a Slack alert is sent automatically.
+The pipeline runs daily on weekdays and follows an ELT pattern: Extract from API, Load into staging, Transform with dbt.
+
+### Extract
+
+Airflow calls the Frankfurter API for the latest USD exchange rates against IDR, EUR, SGD, JPY, and MYR. The raw JSON response is stored in MinIO (S3-compatible object storage) partitioned by date. This raw layer acts as an archive. If the transform logic changes later, you can always reprocess from the original data without calling the API again.
+
+### Load
+
+A second task reads the JSON from MinIO, parses it into one row per currency, and upserts it into a PostgreSQL staging table. Upsert (INSERT ON CONFLICT UPDATE) makes this idempotent. Running the same day twice does not create duplicate rows.
+
+### Transform
+
+dbt reads from the staging table and builds a star schema in the warehouse:
+
+- **dim_date** generated date dimension with year, month, day, day of week, and weekend flag
+- **dim_currencies** seeded reference table (USD, EUR, IDR, SGD, JPY, MYR)
+- **fact_exchange_rates** one row per currency per business day, with the previous day rate, daily change, and daily change percentage calculated using a window function
+
+Cosmos orchestrates dbt inside Airflow, turning each dbt model into its own Airflow task. If `fact_exchange_rates` fails, you can see it directly in the Airflow graph view without reading through logs.
+
+### Monitoring and Alerting
+
+If any task fails, a Slack message is sent automatically with the DAG name, failed task, and a link to the logs. Airflow also sends metrics to StatsD, which Prometheus scrapes and Grafana visualizes. This gives you dashboards for scheduler health, DAG run duration, and task success/failure rates.
 
 &nbsp;
 
@@ -191,4 +217,7 @@ Open [Metabase](http://localhost:4000). On first launch, create an admin account
 
 Thank you for checking out this project. If you have any questions or feedback, feel free to reach out.
 
-You can connect with me on [LinkedIn](https://linkedin.com/in/<your-username>).
+You can connect with me on:
+
+- [LinkedIn](https://linkedin.com/in/<ricofebrian>)
+- [Medium](https://medium.com/@ricofebrian731)
