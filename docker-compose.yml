@@ -180,6 +180,8 @@ services:
       - "${METABASE_PORT}:3000"
     environment:
       MB_DB_TYPE: h2
+    volumes:
+      - metabase-vol:/metabase.db
     restart: unless-stopped
 
   # ============================================================
@@ -228,3 +230,4 @@ volumes:
   airflow-metadata-vol:
   warehouse-vol:
   minio-vol:
+  metabase-vol:
