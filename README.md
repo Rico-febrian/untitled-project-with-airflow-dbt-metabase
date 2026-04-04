@@ -1,29 +1,57 @@
-# Exchange Rate Monitor
+<p align="center">
+  <img width="100%" src="/images/exchange-rate-pipeline-architecture.png" alt="Exchange Rate Pipeline Architecture">
+</p>
 
-Hello, welcome to my learning logs!
+<h1 align="center">
+    <strong>Exchange Rate Reporting Pipeline</strong>
+</h1>
 
-In this project, I explored something new by building an ELT pipeline that simulates how a company might monitor daily exchange rates. The pipeline extracts data from the Frankfurter API, stores raw data in MinIO, loads it into a PostgreSQL data warehouse, transforms it with dbt (orchestrated via Cosmos), and serves analytics through a Metabase dashboard. Everything is scheduled and monitored with Airflow, with failure alerts sent to Slack and Airflow metrics visualized in Grafana.
+<p align="center">
+End-to-end ELT pipeline for monitoring daily exchange rates using Airflow, dbt, and PostgreSQL
+</p>
 
-I hope you find something useful and can learn from this repository!
 
-&nbsp;
+<p align="center">
+<img src="https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white" alt="Python">
+<img src="https://img.shields.io/badge/Airflow-2.10.4-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow">
+<img src="https://img.shields.io/badge/dbt-1.8.7-FF694B?logo=dbt&logoColor=white" alt="dbt">
+<img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
+<img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
+</p>
 
-## Architecture
+## Table of Contents
 
-![Architecture](images/exchange-rate-pipeline-architecture.png)
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [How It Works](#how-it-works)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Services](#services)
 
-&nbsp;
+## Overview
 
-## Dashboard
+Welcome to my learning logs!
 
-![Dashboard](images/exchange-rate-pipeline-dashboard.png)
+In this project, I built an end-to-end ELT pipeline to simulate how a company monitors daily exchange rates.
+
+### Pipeline Flow
+- Extract data from the Frankfurter API  
+- Store raw data in MinIO (data lake)  
+- Load data into PostgreSQL (data warehouse)  
+- Transform data using dbt (orchestrated with Airflow via Cosmos)  
+
+### Analytics & Monitoring
+- Visualize data in Metabase dashboard  
+- Schedule and monitor pipelines using Airflow  
+- Send failure alerts to Slack  
+- Track system metrics in Grafana
 
 &nbsp;
 
 ## Tech Stack
 
 | Layer | Tool |
-|-------|------|
+|---|---|
 | Data Source | Frankfurter API |
 | Data Lake | MinIO |
 | Data Warehouse | PostgreSQL |
@@ -38,29 +66,36 @@ I hope you find something useful and can learn from this repository!
 
 ## How It Works
 
-The pipeline runs daily on weekdays and follows an ELT pattern: Extract from API, Load into staging, Transform with dbt.
+The pipeline runs daily on weekdays and follows an ELT pattern: **Extract** from API → **Load** into staging → **Transform** with dbt.
 
 ### Extract
 
-Airflow calls the Frankfurter API for the latest USD exchange rates against IDR, EUR, SGD, JPY, and MYR. The raw JSON response is stored in MinIO (S3-compatible object storage) partitioned by date. This raw layer acts as an archive. If the transform logic changes later, you can always reprocess from the original data without calling the API again.
+Airflow calls the Frankfurter API for the latest USD exchange rates against IDR, EUR, SGD, JPY, and MYR.
+
+- Raw JSON response is stored in MinIO (S3-compatible object storage), partitioned by date
+- This raw layer acts as an archive — if the transform logic changes later, you can reprocess from the original data without calling the API again
 
 ### Load
 
-A second task reads the JSON from MinIO, parses it into one row per currency, and upserts it into a PostgreSQL staging table. Upsert (INSERT ON CONFLICT UPDATE) makes this idempotent. Running the same day twice does not create duplicate rows.
+A second task reads the JSON from MinIO, parses it into one row per currency, and upserts it into a PostgreSQL staging table.
+
+- Upsert (`INSERT ON CONFLICT UPDATE`) makes this idempotent
+- Running the same day twice does not create duplicate rows
 
 ### Transform
 
 dbt reads from the staging table and builds a star schema in the warehouse:
 
-- **dim_date** generated date dimension with year, month, day, day of week, and weekend flag
-- **dim_currencies** seeded reference table (USD, EUR, IDR, SGD, JPY, MYR)
-- **fact_exchange_rates** one row per currency per business day, with the previous day rate, daily change, and daily change percentage calculated using a window function
+- **`dim_date`** — generated date dimension with year, month, day, day of week, and weekend flag
+- **`dim_currencies`** — seeded reference table (USD, EUR, IDR, SGD, JPY, MYR)
+- **`fact_exchange_rates`** — one row per currency per business day, with the previous day rate, daily change, and daily change percentage calculated using a window function
 
 Cosmos orchestrates dbt inside Airflow, turning each dbt model into its own Airflow task. If `fact_exchange_rates` fails, you can see it directly in the Airflow graph view without reading through logs.
 
 ### Monitoring and Alerting
 
-If any task fails, a Slack message is sent automatically with the DAG name, failed task, and a link to the logs. Airflow also sends metrics to StatsD, which Prometheus scrapes and Grafana visualizes. This gives you dashboards for scheduler health, DAG run duration, and task success/failure rates.
+- **Slack alerts** — if any task fails, a message is sent automatically with the DAG name, failed task, and a link to the logs
+- **Grafana dashboards** — Airflow sends metrics to StatsD, which Prometheus scrapes and Grafana visualizes (scheduler health, DAG run duration, task success/failure rates)
 
 &nbsp;
 
@@ -104,7 +139,7 @@ If any task fails, a Slack message is sent automatically with the DAG name, fail
 - Docker and Docker Compose
 - Python 3.12+ with [uv](https://github.com/astral-sh/uv) (for local development)
 - A Slack workspace with a bot token (for failure alerts)
-- Around 8GB RAM for Docker
+- Around 8 GB RAM for Docker
 
 &nbsp;
 
@@ -115,7 +150,10 @@ git clone https://github.com/<your-username>/exchange-rate-monitor.git
 cd exchange-rate-monitor
 ```
 
-Create a `.env` file in the project root. All services read credentials from this file:
+Create a `.env` file in the project root. All services read credentials from this file.
+
+<details>
+<summary>Example <code>.env</code></summary>
 
 ```env
 AIRFLOW_UID=50000
@@ -146,6 +184,8 @@ PROMETHEUS_PORT=9090
 
 METABASE_PORT=4000
 ```
+
+</details>
 
 &nbsp;
 
@@ -193,18 +233,20 @@ docker exec airflow-scheduler airflow dags backfill exchange_rate_pipeline \
 
 Open [Metabase](http://localhost:4000). On first launch, create an admin account. Add a PostgreSQL connection:
 
-- Host: `exchange-rate-dwh`
-- Port: `5432`
-- Database: `exchange_rate_dwh`
-- Username: `postgres`
-- Password: `postgres123`
+| Setting | Value |
+|---|---|
+| Host | `exchange-rate-dwh` |
+| Port | `5432` |
+| Database | `exchange_rate_dwh` |
+| Username | `postgres` |
+| Password | `postgres123` |
 
 &nbsp;
 
 ## Services
 
 | Service | URL |
-|---------|-----|
+|---|---|
 | Airflow | [localhost:8080](http://localhost:8080) |
 | MinIO Console | [localhost:9201](http://localhost:9201) |
 | Metabase | [localhost:4000](http://localhost:4000) |
