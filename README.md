@@ -48,6 +48,12 @@ In this project, I built an end-to-end ELT pipeline to simulate how a company mo
 
 &nbsp;
 
+## Dashboard Preview
+
+![Dashboard](images/exchange-rate-pipeline-dashboard.png)
+
+&nbsp;
+
 ## Tech Stack
 
 | Layer | Tool |
