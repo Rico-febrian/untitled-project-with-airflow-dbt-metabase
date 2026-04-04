@@ -66,14 +66,16 @@ In this project, I built an end-to-end ELT pipeline to simulate how a company mo
 
 ## How It Works
 
-The pipeline runs daily on weekdays and follows an ELT pattern: **Extract** from API → **Load** into staging → **Transform** with dbt.
+The pipeline runs daily on weekdays and follows an ELT pattern:
+
+**Extract** from API → **Load** into staging → **Transform** with dbt.
 
 ### Extract
 
 Airflow calls the Frankfurter API for the latest USD exchange rates against IDR, EUR, SGD, JPY, and MYR.
 
 - Raw JSON response is stored in MinIO (S3-compatible object storage), partitioned by date
-- This raw layer acts as an archive — if the transform logic changes later, you can reprocess from the original data without calling the API again
+- This raw layer acts as an archive, if the transform logic changes later, you can reprocess from the original data without calling the API again
 
 ### Load
 
@@ -86,16 +88,23 @@ A second task reads the JSON from MinIO, parses it into one row per currency, an
 
 dbt reads from the staging table and builds a star schema in the warehouse:
 
-- **`dim_date`** — generated date dimension with year, month, day, day of week, and weekend flag
-- **`dim_currencies`** — seeded reference table (USD, EUR, IDR, SGD, JPY, MYR)
-- **`fact_exchange_rates`** — one row per currency per business day, with the previous day rate, daily change, and daily change percentage calculated using a window function
+| Table Name | Description |
+|---|---|
+| **`dim_date`** | generated date dimension with year, month, day, day of week, and weekend flag |
+| **`dim_currencies`** | seeded reference table (USD, EUR, IDR, SGD, JPY, MYR) |
+| **`fact_exchange_rates`** | one row per currency per business day, with the previous day rate, daily change, and daily change percentage calculated using a window function |
 
-Cosmos orchestrates dbt inside Airflow, turning each dbt model into its own Airflow task. If `fact_exchange_rates` fails, you can see it directly in the Airflow graph view without reading through logs.
+**Cosmos orchestrates dbt inside Airflow, turning each dbt model into its own Airflow task**. If `fact_exchange_rates` fails, you can see it directly in the Airflow graph view without reading through logs.
 
 ### Monitoring and Alerting
 
-- **Slack alerts** — if any task fails, a message is sent automatically with the DAG name, failed task, and a link to the logs
-- **Grafana dashboards** — Airflow sends metrics to StatsD, which Prometheus scrapes and Grafana visualizes (scheduler health, DAG run duration, task success/failure rates)
+- **Slack alerts**
+
+  If any task fails, a message is sent automatically with the DAG name, failed task, and a link to the logs
+
+- **Grafana dashboards**
+
+  Airflow sends metrics to StatsD, which Prometheus scrapes and Grafana visualizes (scheduler health, DAG run duration, task success/failure rates)
 
 &nbsp;
 
